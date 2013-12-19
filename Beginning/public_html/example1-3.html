@@ -11,17 +11,27 @@
                 background-color: white;
             }
         </style>
+        <!-- 정점의 최종 위치를 설정 -->
+        <!-- x,y,z를 받아서 최종 위치를 (x,y,z,1.0)으로 설정한다. -->
         <script id="shader-vs" type="x-shader/x-vertex">
             attribute vec3 aVertexPosition;
+            attribute vec3 aVertexColor;
             
+            varying highp vec4 vColor;
             void main(void) {
                 gl_Position = vec4(aVertexPosition, 1.0);
+                vColor = vec4(aVertexColor, 1.0);
             }
         </script>
 
+        <!-- 각 픽셀의 최종 색상을 설정 -->
+        <!-- 프래그먼트 셰이더는 자신이 넘겨받는 각 프래그먼트를 흰색으로 설정 -->
         <script id="shader-fs" type="x-shader/x-fragment">
+            varying highp vec4 vColor;
+            
             void main(void) {
-                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+                gl_FragColor = vColor;
+                
             }
         </script>
 
@@ -33,7 +43,9 @@
                     vertexShader = null;
 
             var vertexPositionAttribute = null,
-                    tranglesVerticeBufffer = null;
+                    tranglesVerticeBufffer = null
+                    vertexColorAttribute = null,
+                    trianglesColorBuffer = null;
 
             function initWebGL()
             {
@@ -91,18 +103,32 @@
             function setupBuffers() {
                 var triangleVertices = [
                     // left triangle
-                    -0.5, 0.5, 0.0,
+                    -1.5, 1.5, 0.0,
                     0.0, 0.0, 0.0,
-                    -0.5, -0.5, 0.0,
+                    -1.5, -1.5, 0.0,
                     // right triangle
-                    0.5, 0.5, 0.0,
+                    1.5, 1.5, 0.0,
                     0.0, 0.0, 0.0,
-                    0.5, -0.5, 0.0
+                    1.5, -1.5, 0.0
                 ];
 
                 trianglesVerticeBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, trianglesVerticeBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
+                
+                var trianbleVerticeColors = [
+                    1.0, 0.0, 0.0,
+                    1.0, 1.0, 1.0,
+                    1.0, 0.0, 0.0,
+                    
+                    0.0, 0.0, 1.0,
+                    1.0, 1.0, 1.0,
+                    0.0, 0.0, 1.0
+                ];
+                
+                trianglesColorBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, trianglesColorBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(trianbleVerticeColors), gl.STATIC_DRAW);
             }
 
             function drawScene() {
@@ -111,6 +137,13 @@
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, trianglesVerticeBuffer);
                 gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+                
+                vertexColorAttribute = gl.getAttribLocation(glProgram, "aVertexColor")
+                gl.enableVertexAttribArray(vertexColorAttribute);
+                gl.bindBuffer(gl.ARRAY_BUFFER, trianglesColorBuffer);
+                gl.vertexAttribPointer(vertexColorAttribute, 3, gl.FLOAT, false, 0, 0)
+                
+                
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
             }
         </script>
