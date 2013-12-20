@@ -36,11 +36,21 @@
         </script>
 
         <script>
+            // requestAnimFrame
+            window.requestAnimFrame = (function(callback) {
+                return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+                function(callback) {
+                    var  frameRate =  60;
+                    window.setTimeout(callback, 1000 / p.frameRate);
+                };
+            })();
+            
             var gl = null,
                     canvas = null,
                     glProgram = null,
                     flagmentStader = null,
-                    vertexShader = null;
+                    vertexShader = null,
+                    angle = 0;
 
             var vertexPositionAttribute = null,
                     tranglesVerticeBufffer = null
@@ -57,10 +67,14 @@
                 }
 
                 if (gl) {
-                    setupWebGL();
                     initShader();
                     setupBuffers();
-                    drawScene();
+                    (function animLoop() {
+                        setupWebGL();
+                        setupDynamicBuffers();
+                        drawScene();
+                        requestAnimFrame(animLoop, canvas);
+                    })();
                 } else {
                     alert('Error');
                 }
@@ -101,21 +115,6 @@
             }
 
             function setupBuffers() {
-                var triangleVertices = [
-                    // left triangle
-                    -1.5, 1.5, 0.0,
-                    0.0, 0.0, 0.0,
-                    -1.5, -1.5, 0.0,
-                    // right triangle
-                    1.5, 1.5, 0.0,
-                    0.0, 0.0, 0.0,
-                    1.5, -1.5, 0.0
-                ];
-
-                trianglesVerticeBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, trianglesVerticeBuffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
-                
                 var trianbleVerticeColors = [
                     1.0, 0.0, 0.0,
                     1.0, 1.0, 1.0,
@@ -129,6 +128,27 @@
                 trianglesColorBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, trianglesColorBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(trianbleVerticeColors), gl.STATIC_DRAW);
+            }
+            
+            function setupDynamicBuffers() {
+                var x_translation = Math.sin(angle) / 2.0;
+                
+                var triangleVertices = [
+                    // left triangle
+                    -0.5 + x_translation, 0.5, 0.0,
+                    0.0 + x_translation, 0.0, 0.0,
+                    -0.5 + x_translation, -0.5, 0.0,
+                    // right triangle
+                    0.5 + x_translation, 0.5, 0.0,
+                    0.0 + x_translation, 0.0, 0.0,
+                    0.5 + x_translation, -0.5, 0.0
+                ];
+                
+                angle += 0.01;
+                
+                trianglesVerticeBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, trianglesVerticeBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
             }
 
             function drawScene() {
